@@ -25,6 +25,11 @@ final class RamThreadMonitor {
     private final ThreadMXBean monitor;
     private final long initialRam;
 
+    /**
+     * Creates a new {@code RamThreadMonitor} that watches the CPU use of the provided thread.
+     *
+     * @param threadId The ID of the thread to look for.
+     */
     RamThreadMonitor(final long threadId) {
         final var possibleMonitor = ManagementFactory.getThreadMXBean();
         if (!(possibleMonitor instanceof ThreadMXBean)) { // Different class type
@@ -41,6 +46,12 @@ final class RamThreadMonitor {
         this.threadId = threadId;
     }
 
+
+    /**
+     *
+     *
+     * @return
+     */
     long getMonitoredRam() {
         return monitor.getThreadAllocatedBytes(threadId) - initialRam;
     }

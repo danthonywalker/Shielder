@@ -25,6 +25,11 @@ final class CpuThreadMonitor {
     private final ThreadMXBean monitor;
     private final long initialCpu;
 
+    /**
+     * Creates a new {@code CpuThreadMonitor} that watches the CPU use of the provided thread.
+     *
+     * @param threadId The ID of the thread to look for.
+     */
     CpuThreadMonitor(final long threadId) {
         monitor = ManagementFactory.getThreadMXBean();
         if (!monitor.isThreadCpuTimeEnabled()) {
@@ -35,6 +40,11 @@ final class CpuThreadMonitor {
         this.threadId = threadId;
     }
 
+    /**
+     * Looks at the currently used CPU time from when the monitor was created.
+     *
+     * @return The time the CPU has used since the monitor was made.
+     */
     long getMonitoredCpu() {
         return monitor.getThreadCpuTime(threadId) - initialCpu;
     }

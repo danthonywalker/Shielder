@@ -20,14 +20,32 @@ public class RamExceededException extends SandboxException {
 
     private static final long serialVersionUID = 2089752695410839739L;
 
+    /**
+     * Creates a new {@code RamExceededException} from the provided message and cause.
+     *
+     * @param message The message to display in the stack trace.
+     * @param cause The cause of the exception/
+     */
     public RamExceededException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
+    /**
+     * Creates a new {@code RamExceededException} from the provided message and cause.
+     *
+     * @param message The message to display in the stack trace.
+     * @param cause The cause of the exception/
+     */
     public RamExceededException(final Throwable cause) {
         super(cause);
     }
 
+    /**
+     * Creates a new {@code RamExceededException} from the provided message and cause.
+     *
+     * @param message The message to display in the stack trace.
+     * @param cause The cause of the exception/
+     */
     public RamExceededException(final String message) {
         super(message);
     }

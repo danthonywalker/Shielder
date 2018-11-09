@@ -51,6 +51,12 @@ public final class ShielderScriptEngineManager extends ScriptEngineManager {
         return getShielderScriptEngine(super.getEngineByName(shortName));
     }
 
+    /**
+     * Converts a ScriptEngine into a ShielderScriptEngine.
+     *
+     * @param engine The engine to wrap.
+     * @return The wrapped engine.
+     */
     public ShielderScriptEngine getShielderScriptEngine(final ScriptEngine engine) {
         if (!(engine instanceof ShielderScriptEngine)) { // Prevents any nesting of Shielder instances
             final var factory = new ShielderScriptEngineFactory(engine.getFactory(), sandbox, loader);
