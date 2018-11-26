@@ -17,6 +17,7 @@
 package shielder.jsr223;
 
 import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
 import shielder.core.Sandbox;
 
@@ -38,26 +39,33 @@ public final class ShielderScriptEngineManager extends ScriptEngineManager {
 
     @Override
     public ShielderScriptEngine getEngineByExtension(final String extension) {
-        return getShielderScriptEngine(super.getEngineByExtension(extension));
+        return wrapEngine(super.getEngineByExtension(extension));
     }
 
     @Override
     public ShielderScriptEngine getEngineByMimeType(final String mimeType) {
-        return getShielderScriptEngine(super.getEngineByMimeType(mimeType));
+        return wrapEngine(super.getEngineByMimeType(mimeType));
     }
 
     @Override
     public ShielderScriptEngine getEngineByName(final String shortName) {
-        return getShielderScriptEngine(super.getEngineByName(shortName));
+        return wrapEngine(super.getEngineByName(shortName));
     }
 
-    public ShielderScriptEngine getShielderScriptEngine(final ScriptEngine engine) {
-        if (!(engine instanceof ShielderScriptEngine)) { // Prevents any nesting of Shielder instances
-            final var factory = new ShielderScriptEngineFactory(engine.getFactory(), sandbox, loader);
-            return ShielderScriptEngineProxy.of(engine, factory, loader);
+    public ShielderScriptEngineFactory wrapFactory(final ScriptEngineFactory factory) {
+        if (factory instanceof ShielderScriptEngineFactory) {
+            return (ShielderScriptEngineFactory) factory;
         }
 
-        return (ShielderScriptEngine) engine;
+        return new ShielderScriptEngineFactory(factory, sandbox, loader);
+    }
+
+    public ShielderScriptEngine wrapEngine(final ScriptEngine engine) {
+        if (engine instanceof ShielderScriptEngine) {
+            return (ShielderScriptEngine) engine;
+        }
+
+        return ShielderScriptEngineProxy.of(engine, wrapFactory(engine.getFactory()), loader);
     }
 
     public Sandbox getSandbox() {

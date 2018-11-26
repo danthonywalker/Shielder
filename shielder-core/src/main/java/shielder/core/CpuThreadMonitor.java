@@ -19,12 +19,24 @@ package shielder.core;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 
+/**
+ * Monitors the <a href="https://en.wikipedia.org/wiki/CPU_time">CPU Time</a> of a targeted thread.
+ * <p>
+ * Monitoring does not occur until after this class's instantiation and each instantiation has an
+ * initial usage of {@code 0}. This means two referentially unequal {@code CpuThreadMonitor} instances,
+ * even with equal {@code threadId} fields, may return varying values from {@link #getMonitoredCpu()}.
+ */
 final class CpuThreadMonitor {
 
     private final long threadId;
     private final ThreadMXBean monitor;
     private final long initialCpu;
 
+    /**
+     * Constructs a new {@code CpuThreadMonitor}.
+     *
+     * @param threadId The {@link Thread#getId() ID} of the targeted thread.
+     */
     CpuThreadMonitor(final long threadId) {
         monitor = ManagementFactory.getThreadMXBean();
         if (!monitor.isThreadCpuTimeEnabled()) {
@@ -35,6 +47,13 @@ final class CpuThreadMonitor {
         this.threadId = threadId;
     }
 
+    /**
+     * Gets the amount of CPU time, in nanoseconds, that this instance
+     * has monitored for the targeted thread since its instantiation.
+     *
+     * @return The amount of CPU time, in nanoseconds, that this instance
+     * has monitored for the targeted thread since its instantiation.
+     */
     long getMonitoredCpu() {
         return monitor.getThreadCpuTime(threadId) - initialCpu;
     }

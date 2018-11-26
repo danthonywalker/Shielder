@@ -18,6 +18,7 @@ package shielder.jsr223;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import javax.script.ScriptContext;
 import javax.script.ScriptException;
 import shielder.core.Sandbox;
@@ -26,6 +27,12 @@ import shielder.core.SandboxEnvironment;
 @FunctionalInterface
 interface SandboxExecutor {
 
+    private static ScriptException wrapThrowable(final Throwable throwable) {
+        return (throwable instanceof ScriptException) ? (ScriptException) throwable
+            : ((throwable instanceof Exception) ? new ScriptException((Exception) throwable)
+            : wrapThrowable(new Exception(throwable)));
+    }
+
     Sandbox getSandbox();
 
     private SandboxEnvironment getEnvironment(final ScriptContext context) {
@@ -33,13 +40,12 @@ interface SandboxExecutor {
         return (environment == null) ? getSandbox().getDefaultEnvironment() : environment;
     }
 
-    @SuppressWarnings("OverlyBroadCatchBlock")
     default <T> T sandboxSync(final ScriptContext context, final Callable<? extends T> task) throws ScriptException {
 
-        try { // Avoid sandboxAsync as unnecessary wrapping of exceptions occur
-            return getSandbox().startTask(getEnvironment(context), task).get();
-        } catch (final Exception exception) {
-            throw new ScriptException(exception);
+        try {
+            return sandboxAsync(context, task).join();
+        } catch (final CompletionException exception) {
+            throw wrapThrowable(exception.getCause());
         }
     }
 
@@ -48,8 +54,7 @@ interface SandboxExecutor {
         final var promise = new CompletableFuture<T>();
         return getSandbox().startTask(getEnvironment(context), task)
             .handle((result, exception) -> (exception != null)
-                // ScriptException cannot be thrown directly in a lambda so promise is used
-                ? promise.completeExceptionally(new ScriptException((Exception) exception))
+                ? promise.completeExceptionally(wrapThrowable(exception))
                 : promise.complete(result))
             .thenCompose(ignored -> promise);
     }

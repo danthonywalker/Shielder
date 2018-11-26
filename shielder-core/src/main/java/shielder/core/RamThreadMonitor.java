@@ -19,12 +19,24 @@ package shielder.core;
 import com.sun.management.ThreadMXBean;
 import java.lang.management.ManagementFactory;
 
+/**
+ * Monitors the RAM usage of a targeted thread.
+ * <p>
+ * Monitoring does not occur until after this class's instantiation and each instantiation has an
+ * initial usage of {@code 0}. This means two referentially unequal {@code RamThreadMonitor} instances,
+ * even with equal {@code threadId} fields, may return varying values from {@link #getMonitoredRam()}.
+ */
 final class RamThreadMonitor {
 
     private final long threadId;
     private final ThreadMXBean monitor;
     private final long initialRam;
 
+    /**
+     * Constructs a new {@code RamThreadMonitor}.
+     *
+     * @param threadId The {@link Thread#getId() ID} of the targeted thread.
+     */
     RamThreadMonitor(final long threadId) {
         final var possibleMonitor = ManagementFactory.getThreadMXBean();
         if (!(possibleMonitor instanceof ThreadMXBean)) { // Different class type
@@ -41,6 +53,13 @@ final class RamThreadMonitor {
         this.threadId = threadId;
     }
 
+    /**
+     * Gets the amount of RAM usage, in bytes, that this instance
+     * has monitored for the targeted thread since its instantiation.
+     *
+     * @return The amount of RAM usage, in bytes, that this instance
+     * has monitored for the targeted thread since its instantiation.
+     */
     long getMonitoredRam() {
         return monitor.getThreadAllocatedBytes(threadId) - initialRam;
     }
