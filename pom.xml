@@ -33,7 +33,7 @@
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
-        <shielder.version>0.1.0</shielder.version>
+        <shielder.version>0.1.1</shielder.version>
     </properties>
 
     <build>

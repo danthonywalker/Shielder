@@ -17,6 +17,7 @@
 package shielder.jsr223;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import javax.script.ScriptContext;
@@ -35,24 +36,24 @@ interface SandboxExecutor {
 
     Sandbox getSandbox();
 
-    private SandboxEnvironment getEnvironment(final ScriptContext context) {
-        final var environment = (SandboxEnvironment) context.getAttribute(ShielderScriptEngine.SANDBOX_ENVIRONMENT);
-        return (environment == null) ? getSandbox().getDefaultEnvironment() : environment;
-    }
-
     default <T> T sandboxSync(final ScriptContext context, final Callable<? extends T> task) throws ScriptException {
 
         try {
             return sandboxAsync(context, task).join();
         } catch (final CompletionException exception) {
             throw wrapThrowable(exception.getCause());
+        } catch (final CancellationException exception) {
+            throw wrapThrowable(exception);
         }
     }
 
     default <T> CompletableFuture<T> sandboxAsync(final ScriptContext context, final Callable<? extends T> task) {
 
+        final var attribute = (SandboxEnvironment) context.getAttribute(ShielderScriptEngine.SANDBOX_ENVIRONMENT);
+        final var environment = (attribute == null) ? getSandbox().getDefaultEnvironment() : attribute;
         final var promise = new CompletableFuture<T>();
-        return getSandbox().startTask(getEnvironment(context), task)
+
+        return getSandbox().startTask(environment, task)
             .handle((result, exception) -> (exception != null)
                 ? promise.completeExceptionally(wrapThrowable(exception))
                 : promise.complete(result))
